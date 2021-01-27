@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>DragDev Studios</title>
+        <link rel="stylesheet" href="/css/main.css"/>
+        <meta property="og:title" content="DragDev Studios - Home"/>
+        <meta property="og:description" content="DragDev Studios is a small discord group creating high-quality, powerful discord bots."/>
+        <meta name="theme-color" content="#3498db"/>
+        <meta name="description" content="DragDev Studios is a small discord group creating high-quality, powerful discord bots."/>
+        <meta name="color-scheme" content="dark"/>
+    </head>
+    <body>
+        <h1 style="text-align: center;font-size:6rem" class="boxshadow">DragDev Studios</h1>
+        <div class="cen">
+            <h2>Select an organization</h2>
+            <a href="https://clicksminuteper.net/">
+                <img src="/assets/cmp.jpg" alt="clicksminuteper" title="Clicks Minute Per" class="avatar"/>
+            </a>
+            <a href="/about/dragdev.html">
+                <img src="/assets/dds.png" alt="dragdev studios" title="DragDev Studios" class="avatar"/>
+            </a>
+        </div>
+        <div class="cen">
+            <h2>Select a (DragDev Studios) branch</h2>
+            <a href="https://yourapps.cyou">
+                <img src alt="yourapps" title="YourApps - An Application Bot" id="yourapps-1" class="avatar-small"/>
+            </a>
+            <a href="https://hammr.clicksminuteper.net">
+                <img src="/assets/hammr.png" alt="hammr" title="Security" class="avatar-small"/>
+            </a>
+        </div>
+        <div class="cen">
+            <h2>Select a Bot</h2>
+                <h3>DragDev Studios:</h3>
+                <a href="https://yourapps.cyou/">
+                    <img src alt="yourapps" title="YourApps" id="yourapps" class="avatar-smaller"/>
+                </a>
+                <a href="https://hammr.clicksminuteper.net/">
+                    <img src="/assets/hammr.png" alt="hammr" title="HammR" class="avatar-smaller"/>
+                </a>
+                <a href="https://top.gg/bot/740015266079178843">
+                    <img src="/assets/megaphone.png" alt="megaphone" title="MegaPhone" class="avatar-smaller"/>
+                </a>
+
+                <h3>ClicksMinutePer:</h3>
+                <a href="https://top.gg/bot/679361555732627476">
+                    <img src="/assets/GPS.png" alt="gonepearshaped" title="Gone Pear Shaped (Cards Against Humanity)" class="avatar-smaller"/> 
+                </a>
+                <a href="https://top.gg/bot/715989276382462053">
+                    <img src="/assets/RSM.png" alt="RSM" title="remote server management" class="avatar-smaller"/> 
+                </a>
+        </div>
+        <hr style="max-width: 75%;height:10px;border-radius: 4px;background-color:white"/>
+        <div class="cen">
+            <h2>External Websites</h2>
+            <a href="https://github.com/dragdev-studios">
+                <img src="/assets/github.png" alt="github"/ class="avatar-smaller">
+            </a>
+            <a href="https://yourapps.cyou/support">
+                <img src="/assets/discord.svg" class="avatar-small" alt="discord" style="border-radius:0;filter:invert(1)"/>
+            </a>
+        </div>
+        <script defer>
+            // Fetch all icons supplied by external services.
+            async function get(url, elemid, backup) {
+                async function resolve() {
+                    try {
+                        const result = await fetch(url);
+                        const json = await result.json();
+                        const result_url = json.url;
+                        return result_url;
+                    }
+                    catch {
+                        return backup || "https://cdn.discordapp.com/embed/avatars/4.png";
+                    };
+                };
+                const res = await resolve();
+                let elem = document.getElementById(elemid);
+                if (elem) {elem.src = res;}
+                else {console.warn("No element with the ID " + elemid)};
+                return;
+            };
+            const places = [
+                ["https://ya.clicksminuteper.net/api/bot/icon", "yourapps", "/assets/yourapps.png"],
+                ["https://ya.clicksminuteper.net/api/bot/icon", "yourapps-1", "/assets/yourapps.png"]
+            ];
+            for (const [u,i,b] of places) {
+                get(u,i,b);
+            }
+        </script>
+    </body>
+</html>
