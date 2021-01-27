@@ -14,9 +14,7 @@ div.cen {text-align:center;vertical-align:middle}
     transition-duration: 0.5s
 }
 .boxshadow:hover {
-    -webkit-text-shadow: 10px 10px 5px rgba(119, 118, 118, 1);
-    -moz-text-shadow: 10px 10px 5px rgba(119, 118, 118, 1);
-    text-shadow: 10px 10px 5px rgba(119, 118, 118, 1);
+    text-shadow: 2px 2px 6px rgba(119, 118, 118, 1);
     /* yes I used a tool for this */   
 }
 a {
