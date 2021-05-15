@@ -6,7 +6,7 @@
 
 ```shell
 git clone https://github.com/dragdev-studios/dragdev.xyz
-cd website
+cd dragdev.xyz
 pip install -Ur requirements.txt
 python3 main.py
 ```
