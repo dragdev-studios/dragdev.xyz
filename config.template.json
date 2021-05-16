@@ -1,0 +1,12 @@
+{
+    "host": "127.0.0.1",
+    "port": 8080,
+    "static_dir": "./static",
+    "allowed_origins": [
+        "https://example.com",
+        "http://old.example.com"
+    ],
+    "favicon_url": "/assets/favicon.ico",
+    "blog_password": null,
+    "bot_token": null
+}
