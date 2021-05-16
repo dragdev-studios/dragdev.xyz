@@ -35,3 +35,17 @@ hr {
     min-height: 0.2rem;
     max-height: 0.7rem
 }
+
+nav {
+    display: flex;
+    justify-content: space-evenly;
+    vertical-align: middle;
+    align-items: baseline;
+}
+
+img.icon {
+    vertical-align: baseline;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}

@@ -31,6 +31,7 @@ function createNav() {
 
     for(let key of Object.keys(navLinks)) {
         let container = document.createElement("div");
+        container.style.verticalAlign = "baseline";  // hopefully this'll inline the images?
         let img = document.createElement("img");
         img.classList.add("icon");
         let linkContainer = document.createElement("a");
@@ -39,13 +40,15 @@ function createNav() {
         if(entry.icon!==null) {
             img.src = entry.icon;
             img.alt = "&zwsp;";
+            container.appendChild(img);
         };
         linkContainer.href = entry.href;
         linkContainer.target = entry.target;
         linkContainer.textContent = key;
 
-        container.appendChild(img);
         container.appendChild(linkContainer);
         nav.appendChild(container);
-    }l
+    };
 };
+
+window.addEventListener("load", createNav);
