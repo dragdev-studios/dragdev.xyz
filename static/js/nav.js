@@ -7,12 +7,12 @@ const navLinks = {
     discord: {
         href: "/server",
         target: "_blank",
-        icon: "/assets/discord.svg"
+        icon: "/assets/images/discord.svg"
     },
     github: {
         href: "//github.com/dragdev-studios",
         target: "_blank",
-        icon: "/assets/github.svg"
+        icon: "/assets/images/github.svg"
     },
     bots: {
         href: "/about/bots/index.html",

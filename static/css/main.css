@@ -15,7 +15,6 @@ div.cen {text-align:center;vertical-align:middle}
 }
 .boxshadow:hover {
     text-shadow: 2px 2px 6px rgba(119, 118, 118, 1);
-    /* yes I used a tool for this */   
 }
 a {
     color: lightskyblue;
