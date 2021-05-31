@@ -21,6 +21,12 @@ const navLinks = {
     }
 }
 
+async function fetch_invite_url() {
+    const response = await fetch("/server");
+    const text = await response.text();
+    return text.replace(/"/g, "");
+}
+
 function createNav() {
     const elements = document.getElementsByTagName("nav");
     if(elements.length === 0) {
@@ -39,8 +45,13 @@ function createNav() {
         let entry = navLinks[key];
         if(entry.icon!==null) {
             img.src = entry.icon;
-            img.alt = "&zwsp;";
+            img.alt = "​";
             container.appendChild(img);
+        };
+        if(entry.href==="/server") {
+            fetch_invite_url().then(
+                (t)=>{linkContainer.href=t}
+            );
         };
         linkContainer.href = entry.href;
         linkContainer.target = entry.target;
