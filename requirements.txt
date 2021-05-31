@@ -1,3 +1,5 @@
 uvicorn
 fastapi
 aiofiles
+requests
+marko

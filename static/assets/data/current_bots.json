@@ -1,0 +1,10 @@
+{
+    "YourApps": {
+        "active": "HEAD://ya.clicksminuteper.net/docs:200",
+        "icon": "/assets/images/yourapps.png"
+    },
+    "DragDev Tickets": {
+        "active": "HEAD://ddt.clicksminuteper.net/docs:200",
+        "icon": "/assets/images/ddt.svg"
+    }
+}
