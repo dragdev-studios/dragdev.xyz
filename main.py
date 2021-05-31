@@ -1,7 +1,9 @@
 import os
 import sys
+import subprocess
 from json import load, JSONDecodeError
 from datetime import datetime, timedelta
+from pathlib import Path
 from requests import get
 
 import fastapi
@@ -16,12 +18,25 @@ if not os.path.exists("./config.json"):
     print("No config file exists. Please copy 'config.template.json' to 'config.json' and modify it to your system.")
     sys.exit(1)
 
+if os.getcwd() != Path(__file__).parent:
+    print("Not in the correct working directory, moving...")
+    os.chdir(Path(__file__).parent)
+
 try:
     with open("./config.json", "r") as config_file:
         config = load(config_file)
 except JSONDecodeError:
     print("Invalid JSON.")
     sys.exit(2)
+
+print("Checking for updates...")
+cmd = subprocess.run(["git", "fetch"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+if not cmd.stdout:
+    print("Site is up to date.")
+else:
+    print("Updating...")
+    subprocess.run(["git", "pull"])
+    print("Done. Starting.")
 
 app = fastapi.FastAPI()
 app.state.invite = {
