@@ -9,6 +9,18 @@
         <meta name="description" content="DragDev Studios is a small discord group creating high-quality, powerful discord bots."/>
         <meta name="color-scheme" content="dark"/>
         <script src="/js/nav.js" async></script>
+        <style>
+            @keyframes rotata {
+                from {transform: rotate(0deg)}
+                to {transform: rotate(359deg)}
+            }
+
+            #placeholder {
+                animation-name: rotata;
+                animation-duration: 1s;
+                animation-iteration-count: infinite;
+            }
+        </style>
     </head>
     <body>
         <script>//</script>
@@ -50,5 +62,26 @@
                 <img src="/assets/images/discord.svg" style="width: 64px;height: 64px" class="avatar-small boxshadow" alt="discord"/>
             </a>
         </div>
+        <hr style="max-width: 75%;height:10px;border-radius: 4px;background-color:white"/>
+        <div class="cen">
+            <div>
+                <h2>Pixels event:</h2>
+            </div>
+            <div>
+                <p>If you are unaware of what this is, it is a developer-oriented project where you can make changes
+            to the below canvas by sending POST requests to an endpoint. See docs at
+            <a href="//pixels.dragdev.xyz/docs">this url</a></p>
+            </div>
+            <div>
+                <img src="/assets/images/placeholder.svg" style="width: 128px;height:128px" id="placeholder"/>
+                <img src="/pixels?resize_x=512&resize_y=288" style="width:512px;height:288px;display:none" id="canvas"/>
+            </div>
+        </div>
+    <script>
+        var placeholder = document.getElementById("placeholder");
+        var canvas = document.getElementById("canvas");
+        canvas.addEventListener("error", () => {this.remove()});
+        canvas.addEventListener("load", () => {placeholder.remove();canvas.style.display="block"});
+    </script>
     </body>
 </html>
