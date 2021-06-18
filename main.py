@@ -55,6 +55,7 @@ app.state.invite = {
     "url": "https://discord.gg/YBNWw7nMGH"
 }
 app.state.loop = asyncio.get_event_loop()
+app.state.last_canvas = b""
 if config["allowed_origins"]:
     app.add_middleware(
         CORSMiddleware, allow_origins=config["allowed_origins"]
@@ -133,15 +134,23 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
             "Authorization": "Bearer " + token
         }
     )
+    content = response.content
     if response.status_code != 200:
-        raise HTTPException(response.status_code, response.text, dict(response.headers))
+        if not app.state.last_canvas:
+            raise HTTPException(response.status_code, response.text, dict(response.headers))
+        else:
+            content = app.state.last_canvas
+    app.state.last_canvas = response.content
     size = await e(
         get,
         "https://pixels.dragdev.xyz/get_size"
     )
-    size = await e(size.json)  # we could just use aiohttp...
+    if size.status_code != 200:
+        size = {"width": 272, "height": 135}
+    else:
+        size = await e(size.json)  # we could just use aiohttp...
 
-    img = await e(Image.frombytes, "RGB", tuple(size.values()), response.content)
+    img = await e(Image.frombytes, "RGB", tuple(size.values()), content)
 
     # Now we need to "obfuscate" the image to prevent people scraping this endpoint for the canvas
     for y in range(img.height):
@@ -162,6 +171,7 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
     io.seek(0)
     return Response(
         await e(io.read),
+        203,
         media_type="image/png"
     )
 
