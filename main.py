@@ -160,6 +160,9 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
     # Now we need to "obfuscate" the image to prevent people scraping this endpoint for the canvas
     if resize_x and resize_y:
         # resize the image to the correct width
+        resize_x = min(4069, resize_x)
+        resize_y = min(2160, resize_y)
+
         img = await e(img.resize, (resize_x, resize_y), Image.NEAREST)
     for y in range(img.height):
         for x in range(img.width):
@@ -178,7 +181,7 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
         203,
         media_type="image/png",
         headers={
-            "Cache-Control": "public,max-age: 120"
+            "Cache-Control": "public,max-age=120"
         }
     )
 
