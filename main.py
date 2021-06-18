@@ -61,7 +61,6 @@ async def markdown_middleware(request: Request, call_next):
         try:
             stat = os.stat("./static" + request.url.path)
             etag = b64encode(str(stat.st_mtime).encode()).decode()
-            print("Generated etag:", etag, "\nProvided etag:", request.headers.get("if-none-match"))
         except FileNotFoundError:
             raise HTTPException(404)
 
@@ -131,6 +130,7 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
         if not token:
             raise HTTPException(501,
                                 {"detail": "This server has not provided authentication for the DragDev Pixels API."})
+    start_download = datetime.now()
     response = await e(
         get,
         "https://pixels.dragdev.xyz/get_pixels",
@@ -146,6 +146,8 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
             content = app.state.last_canvas
     else:
         app.state.last_canvas = response.content
+    end_download = datetime.now()
+    start_fetch_size = datetime.now()
     size = await e(
         get,
         "https://pixels.dragdev.xyz/get_size"
@@ -154,16 +156,24 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
         size = {"width": 272, "height": 135}
     else:
         size = await e(size.json)  # we could just use aiohttp...
+    end_fetch_size = datetime.now()
 
+    start_render_image = datetime.now()
     img = await e(Image.frombytes, "RGB", tuple(size.values()), content)
+    end_render_image = datetime.now()
 
     # Now we need to "obfuscate" the image to prevent people scraping this endpoint for the canvas
+    start_resize_image = 0.0
+    end_resize_image = 0.0
     if resize_x and resize_y:
         # resize the image to the correct width
         resize_x = min(4069, resize_x)
         resize_y = min(2160, resize_y)
 
+        start_resize_image = datetime.now()
         img = await e(img.resize, (resize_x, resize_y), Image.NEAREST)
+        end_resize_image = datetime.now()
+    start_obfuscate = datetime.now()
     for y in range(img.height):
         for x in range(img.width):
             _r, _g, _b = img.getpixel((x, y))
@@ -173,15 +183,33 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
             g += noise_level
             b += noise_level
             img.putpixel((x, y), (r, g, b))
+    end_obfuscate = datetime.now()
+    timings = {
+        "download_image": (end_download - start_download).total_seconds(),
+        "fetch_size": (end_fetch_size - start_fetch_size).total_seconds(),
+        "render_image": (end_render_image - start_render_image).total_seconds(),
+        "resize_image": (end_resize_image - start_resize_image).total_seconds(),
+        "obfuscate_image": (end_obfuscate - start_obfuscate).total_seconds()
+    }
     io = BytesIO()
+    start_save = datetime.now()
     await e(img.save, io, format="png")
     io.seek(0)
+    end_save = datetime.now()
+    start_read = datetime.now()
+    data = await e(io.read)
+    end_read = datetime.now()
+    timings["save_image"] = (end_save-start_save).total_seconds()
+    timings["read_rendered_data"] = (end_read - start_read).total_seconds()
     return Response(
-        await e(io.read),
+        data,
         203,
         media_type="image/png",
         headers={
-            "Cache-Control": "public,max-age=120"
+            "Cache-Control": "public,max-age=120",
+            "Server-Timing": ", ".join(
+                f"{k};dur={v}" for k, v in timings.items()
+            )
         }
     )
 
