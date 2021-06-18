@@ -10,6 +10,7 @@ from functools import partial
 from pathlib import Path
 from requests import get
 from warnings import warn
+from base64 import b64encode, b64decode
 
 import fastapi
 import uvicorn
@@ -40,15 +41,6 @@ except JSONDecodeError:
     print("Invalid JSON.")
     sys.exit(2)
 
-print("Checking for updates...")
-cmd = subprocess.run(["git", "fetch"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-if not cmd.stdout:
-    print("Site is up to date.")
-else:
-    print("Updating...")
-    subprocess.run(["git", "pull", "origin", "master"])
-    print("Done. Starting.")
-
 app = fastapi.FastAPI()
 app.state.invite = {
     "fetched_at": datetime.min,
@@ -67,14 +59,26 @@ async def markdown_middleware(request: Request, call_next):
     """Middleware to render markdown files."""
     if request.url.path.lower().endswith(".md"):
         try:
-            with open("./static" + request.url.path) as file:
-                content = file.read()
+            stat = os.stat("./static" + request.url.path)
+            etag = b64encode(str(stat.st_mtime).encode()).decode()
+            print("Generated etag:", etag, "\nProvided etag:", request.headers.get("if-none-match"))
         except FileNotFoundError:
             raise HTTPException(404)
+
+        if request.headers.get("if-none-match"):
+            if etag == request.headers["if-none-match"]:
+                return Response(None, 304)
+        with open("./static" + request.url.path) as file:
+            content = file.read()
+
         with open("./static/assets/template-markdown.html") as template:
             html_template = template.read()
+
         formatted = marko.convert(content)
-        response = HTMLResponse(html_template.replace("$", formatted))
+        _html = html_template.replace("$", formatted)
+        comment = "<!-- Automatically generated at {}. -->\n".format(datetime.utcnow().strftime("%c"))
+
+        response = HTMLResponse(comment+_html, headers={"etag": etag})
     else:
         response = await call_next(request)
     return response
@@ -154,6 +158,9 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
     img = await e(Image.frombytes, "RGB", tuple(size.values()), content)
 
     # Now we need to "obfuscate" the image to prevent people scraping this endpoint for the canvas
+    if resize_x and resize_y:
+        # resize the image to the correct width
+        img = await e(img.resize, (resize_x, resize_y), Image.NEAREST)
     for y in range(img.height):
         for x in range(img.width):
             _r, _g, _b = img.getpixel((x, y))
@@ -163,19 +170,38 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
             g += noise_level
             b += noise_level
             img.putpixel((x, y), (r, g, b))
-
-    if resize_x and resize_y:
-        # resize the image to the correct width
-        img = await e(img.resize, (resize_x, resize_y), Image.NEAREST)
     io = BytesIO()
     await e(img.save, io, format="png")
     io.seek(0)
     return Response(
         await e(io.read),
         203,
-        media_type="image/png"
+        media_type="image/png",
+        headers={
+            "Cache-Control": "public,max-age: 120"
+        }
     )
 
 
 app.mount("/", StaticFiles(directory=config["static_dir"], html=True))
-uvicorn.run(app, host=config["host"], port=config["port"])
+
+if __name__ == "__main__":
+    print("Checking for updates...")
+    cmd = subprocess.run(["git", "fetch"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if not cmd.stdout:
+        print("Site is up to date.")
+    else:
+        print("Updating...")
+        cmd2 = subprocess.run(["git", "pull"] + config.get("git_path", ["origin", "master"]))
+        requires_restart = (
+            b"main.py",
+            b"requirements.txt"
+        )
+        if b"requirements.txt" in cmd2.stdout:
+            print("Updating requirements...")
+            subprocess.run([sys.executable, "-m", "pip", "install", "-Ur", "requirements.txt"])
+        if any(x in requires_restart for x in cmd2.stdout):
+            print("Restart required.", file=sys.stderr)
+            sys.exit(1)
+        print("Done. Starting.")
+    uvicorn.run(app, host=config["host"], port=config["port"])

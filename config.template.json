@@ -8,5 +8,6 @@
     ],
     "favicon_url": "/assets/favicon.ico",
     "blog_password": null,
-    "bot_token": null
+    "bot_token": null,
+    "git_path": ["origin", "master"]
 }
