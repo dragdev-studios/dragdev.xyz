@@ -140,7 +140,8 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
             raise HTTPException(response.status_code, response.text, dict(response.headers))
         else:
             content = app.state.last_canvas
-    app.state.last_canvas = response.content
+    else:
+        app.state.last_canvas = response.content
     size = await e(
         get,
         "https://pixels.dragdev.xyz/get_size"
