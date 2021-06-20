@@ -102,7 +102,13 @@ def get_server_invite():
 
 
 @app.get("/pixels")
-async def get_pixels_image(resize_x: int = None, resize_y: int = None):
+async def get_pixels_image(resize_x: int = None, resize_y: int = None, fmt: str = "webp"):
+    fmt = fmt.lower()
+    if fmt not in ["webp", "png", "jpg", "jpeg"]:
+        raise HTTPException(
+            406,
+            ["webp", "png", "jpeg", "jpg"]
+        )
     max_noise_level = config.get("max_noise", ...)
     if max_noise_level is ...:
         max_noise_level = randomiser.randint(5, 30)
@@ -164,8 +170,8 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
     end_render_image = datetime.now()
 
     # Now we need to "obfuscate" the image to prevent people scraping this endpoint for the canvas
-    start_resize_image = 0.0
-    end_resize_image = 0.0
+    start_resize_image = datetime.now()
+    end_resize_image = datetime.now()
     if resize_x and resize_y:
         # resize the image to the correct width
         resize_x = min(4069, resize_x)
@@ -194,7 +200,7 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
     }
     io = BytesIO()
     start_save = datetime.now()
-    await e(img.save, io, format="png")
+    await e(img.save, io, format=fmt.lower())
     io.seek(0)
     end_save = datetime.now()
     start_read = datetime.now()
@@ -205,7 +211,7 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
     return Response(
         data,
         203,
-        media_type="image/png",
+        media_type="image/"+fmt,
         headers={
             "Cache-Control": "public,max-age=120",
             "Server-Timing": ", ".join(
