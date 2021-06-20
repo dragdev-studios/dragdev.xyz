@@ -5,14 +5,15 @@ import subprocess
 from random import SystemRandom
 from json import load, JSONDecodeError
 from io import BytesIO
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from functools import partial
 from pathlib import Path
 from requests import get
 from warnings import warn
-from base64 import b64encode, b64decode
+from base64 import b64encode
 
 import fastapi
+from starlette import middleware
 import uvicorn
 import marko
 from fastapi.staticfiles import StaticFiles
@@ -50,7 +51,7 @@ app.state.loop = asyncio.get_event_loop()
 app.state.last_canvas = b""
 if config["allowed_origins"]:
     app.add_middleware(
-        CORSMiddleware, allow_origins=config["allowed_origins"]
+        CORSMiddleware, allow_origins=config["allowed_origins"], allow_methods=["GET", "HEAD"]
     )
 
 
@@ -72,7 +73,7 @@ async def markdown_middleware(request: Request, call_next):
 
         with open("./static/assets/template-markdown.html") as template:
             html_template = template.read()
-
+        
         formatted = marko.convert(content)
         _html = html_template.replace("$", formatted)
         comment = "<!-- Automatically generated at {}. -->\n".format(datetime.utcnow().strftime("%c"))
@@ -208,7 +209,7 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None):
         headers={
             "Cache-Control": "public,max-age=120",
             "Server-Timing": ", ".join(
-                f"{k};dur={v}" for k, v in timings.items()
+                f"{k};dur={v*1000}" for k, v in timings.items()
             )
         }
     )
