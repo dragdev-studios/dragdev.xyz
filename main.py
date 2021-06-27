@@ -11,9 +11,9 @@ from pathlib import Path
 from requests import get
 from warnings import warn
 from base64 import b64encode
+from multiprocessing import Process
 
 import fastapi
-from starlette import middleware
 import uvicorn
 import marko
 from fastapi.staticfiles import StaticFiles
@@ -181,15 +181,19 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None, fmt: str 
         img = await e(img.resize, (resize_x, resize_y), Image.NEAREST)
         end_resize_image = datetime.now()
     start_obfuscate = datetime.now()
-    for y in range(img.height):
-        for x in range(img.width):
-            _r, _g, _b = img.getpixel((x, y))
-            r, g, b = img.getpixel((x, y))
-            noise_level = randomiser.randint(1, max_noise_level)
-            r += noise_level
-            g += noise_level
-            b += noise_level
-            img.putpixel((x, y), (r, g, b))
+
+    def obfuscate():
+        for y in range(img.height):
+            for x in range(img.width):
+                r, g, b = img.getpixel((x, y))
+                noise_level = randomiser.randint(1, max_noise_level)
+                r += noise_level
+                g += noise_level
+                b += noise_level
+                img.putpixel((x, y), (r, g, b))
+    proc = Process(target=obfuscate)
+    proc.start()
+    proc.join()
     end_obfuscate = datetime.now()
     timings = {
         "download_image": (end_download - start_download).total_seconds(),
