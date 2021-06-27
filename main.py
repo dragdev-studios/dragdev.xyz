@@ -173,10 +173,11 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None, fmt: str 
                 g += noise_level
                 b += noise_level
                 img.putpixel((x, y), (r, g, b))
-
     proc = Process(target=obfuscate)
+    print("Starting thread @", proc.native_id)
     proc.start()
     proc.join()
+    print("Finished thread @", proc.native_id)
     end_obfuscate = datetime.now()
     timings = {
         "download_image": (end_download - start_download).total_seconds(),
