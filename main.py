@@ -31,7 +31,7 @@ if not os.path.exists("./config.json"):
     print("No config file exists. Please copy 'config.template.json' to 'config.json' and modify it to your system.")
     sys.exit(1)
 
-if os.getcwd() != Path(__file__).parent:
+if os.getcwd() != str(Path(__file__).parent):
     print("Not in the correct working directory, moving...")
     os.chdir(Path(__file__).parent)
 
