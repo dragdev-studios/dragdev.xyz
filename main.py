@@ -24,8 +24,10 @@ from fastapi import Request, HTTPException
 randomiser = SystemRandom()  # cryptographically secure numbers :sunglasses:
 
 if sys.version_info >= (3, 10):
-    print("Warning: dragdev.xyz is only tested to work with python 3.6-9. 3.10+ is not currently guaranteed to work.",
-          file=sys.stderr)
+    print(
+        "Warning: dragdev.xyz is only tested to work with python 3.6-9. 3.10+ is not currently guaranteed to work.",
+        file=sys.stderr,
+    )
 
 if not os.path.exists("./config.json"):
     print("No config file exists. Please copy 'config.template.json' to 'config.json' and modify it to your system.")
@@ -43,16 +45,11 @@ except JSONDecodeError:
     sys.exit(2)
 
 app = fastapi.FastAPI()
-app.state.invite = {
-    "fetched_at": datetime.min,
-    "url": "https://discord.gg/YBNWw7nMGH"
-}
+app.state.invite = {"fetched_at": datetime.min, "url": "https://discord.gg/YBNWw7nMGH"}
 app.state.loop = asyncio.get_event_loop()
 app.state.last_canvas = b""
 if config["allowed_origins"]:
-    app.add_middleware(
-        CORSMiddleware, allow_origins=config["allowed_origins"], allow_methods=["GET", "HEAD"]
-    )
+    app.add_middleware(CORSMiddleware, allow_origins=config["allowed_origins"], allow_methods=["GET", "HEAD"])
 
 
 @app.middleware("http")
@@ -73,12 +70,12 @@ async def markdown_middleware(request: Request, call_next):
 
         with open("./static/assets/template-markdown.html") as template:
             html_template = template.read()
-        
+
         formatted = marko.convert(content)
         _html = html_template.replace("$", formatted)
         comment = "<!-- Automatically generated at {}. -->\n".format(datetime.utcnow().strftime("%c"))
 
-        response = HTMLResponse(comment+_html, headers={"etag": etag})
+        response = HTMLResponse(comment + _html, headers={"etag": etag})
     else:
         response = await call_next(request)
     return response
@@ -91,9 +88,7 @@ def get_server_invite():
 
     widget = get(
         "https://discord.com/api/v8/guilds/772980293929402389/invites",
-        headers={
-            "Authorization": "Bot " + config["bot_token"]
-        }
+        headers={"Authorization": "Bot " + config["bot_token"]},
     )
     data = widget.json()
     app.state.invite["url"] = "https://discord.gg/" + data["code"]
@@ -105,10 +100,7 @@ def get_server_invite():
 async def get_pixels_image(resize_x: int = None, resize_y: int = None, fmt: str = "webp"):
     fmt = fmt.lower()
     if fmt not in ["webp", "png", "jpg", "jpeg"]:
-        raise HTTPException(
-            406,
-            ["webp", "png", "jpeg", "jpg"]
-        )
+        raise HTTPException(406, ["webp", "png", "jpeg", "jpg"])
     max_noise_level = config.get("max_noise", ...)
     if max_noise_level is ...:
         max_noise_level = randomiser.randint(5, 30)
@@ -119,32 +111,25 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None, fmt: str 
 
     async def e(f, *args, **kwargs):
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            None,
-            partial(f, *args, **kwargs)
-        )
+        return await loop.run_in_executor(None, partial(f, *args, **kwargs))
 
     try:
         from PIL import Image
     except ImportError:
-        raise HTTPException(501,
-                            {"detail": "This server has not installed dependencies, unable to process pixels data."})
+        raise HTTPException(
+            501, {"detail": "This server has not installed dependencies, unable to process pixels data."}
+        )
     token = config.get("pixels_token")
     if not token:
         raise HTTPException(501, {"detail": "This server has not provided authentication for the DragDev Pixels API."})
     if token.startswith("$"):
         token = os.getenv(token[1:])
         if not token:
-            raise HTTPException(501,
-                                {"detail": "This server has not provided authentication for the DragDev Pixels API."})
+            raise HTTPException(
+                501, {"detail": "This server has not provided authentication for the DragDev Pixels API."}
+            )
     start_download = datetime.now()
-    response = await e(
-        get,
-        "https://pixels.dragdev.xyz/get_pixels",
-        headers={
-            "Authorization": "Bearer " + token
-        }
-    )
+    response = await e(get, "https://pixels.dragdev.xyz/get_pixels", headers={"Authorization": "Bearer " + token})
     content = response.content
     if response.status_code != 200:
         if not app.state.last_canvas:
@@ -155,10 +140,7 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None, fmt: str 
         app.state.last_canvas = response.content
     end_download = datetime.now()
     start_fetch_size = datetime.now()
-    size = await e(
-        get,
-        "https://pixels.dragdev.xyz/get_size"
-    )
+    size = await e(get, "https://pixels.dragdev.xyz/get_size")
     if size.status_code != 200:
         size = {"width": 272, "height": 135}
     else:
@@ -191,6 +173,7 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None, fmt: str 
                 g += noise_level
                 b += noise_level
                 img.putpixel((x, y), (r, g, b))
+
     proc = Process(target=obfuscate)
     proc.start()
     proc.join()
@@ -200,7 +183,7 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None, fmt: str 
         "fetch_size": (end_fetch_size - start_fetch_size).total_seconds(),
         "render_image": (end_render_image - start_render_image).total_seconds(),
         "resize_image": (end_resize_image - start_resize_image).total_seconds(),
-        "obfuscate_image": (end_obfuscate - start_obfuscate).total_seconds()
+        "obfuscate_image": (end_obfuscate - start_obfuscate).total_seconds(),
     }
     io = BytesIO()
     start_save = datetime.now()
@@ -210,18 +193,16 @@ async def get_pixels_image(resize_x: int = None, resize_y: int = None, fmt: str 
     start_read = datetime.now()
     data = await e(io.read)
     end_read = datetime.now()
-    timings["save_image"] = (end_save-start_save).total_seconds()
+    timings["save_image"] = (end_save - start_save).total_seconds()
     timings["read_rendered_data"] = (end_read - start_read).total_seconds()
     return Response(
         data,
         203,
-        media_type="image/"+fmt,
+        media_type="image/" + fmt,
         headers={
             "Cache-Control": "public,max-age=120",
-            "Server-Timing": ", ".join(
-                f"{k};dur={v*1000}" for k, v in timings.items()
-            )
-        }
+            "Server-Timing": ", ".join(f"{k};dur={v*1000}" for k, v in timings.items()),
+        },
     )
 
 
@@ -235,10 +216,7 @@ if __name__ == "__main__":
     else:
         print("Updating...")
         cmd2 = subprocess.run(["git", "pull"] + config.get("git_path", ["origin", "master"]))
-        requires_restart = (
-            b"main.py",
-            b"requirements.txt"
-        )
+        requires_restart = (b"main.py", b"requirements.txt")
         if b"requirements.txt" in cmd2.stdout:
             print("Updating requirements...")
             subprocess.run([sys.executable, "-m", "pip", "install", "-Ur", "requirements.txt"])
