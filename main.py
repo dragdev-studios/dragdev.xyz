@@ -11,7 +11,7 @@ from pathlib import Path
 from requests import get
 from warnings import warn
 from base64 import b64encode
-from multiprocessing import Process
+from threading import Thread as Process
 
 import fastapi
 import uvicorn
